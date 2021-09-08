@@ -1,0 +1,83 @@
+name: build desqueeze for MacOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'Release title'
+        required: true
+        default: 'Mona the Octocat'
+
+jobs:
+  build-macos-app:
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        os: [mac64, lin64, win64]
+        include:
+        - os: mac64
+          goos: darwin
+          arch: amd64
+
+    steps:
+    - name: Get the version
+      id: get_version
+      #run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo ::set-output name=VERSION::${{ github.event.inputs.title }}
+
+    - uses: actions/checkout@v1
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install required packages
+      run: |
+        npm install --global create-dmg
+        brew install graphicsmagick imagemagick
+
+    - name: Set up Go 1.17.0
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.0
+
+    - name: cache
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Get dependencies
+      run: go get -v -t -d ./...
+
+    - name: Build go binary
+      env:
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.arch }}
+      run: |
+        mkdir dist
+        cp README.md LICENSE dist/
+        GOOS=$goos GOARCH=$goarch go build -ldflags="-w -s -X 'main.version=${{ steps.get_version.outputs.VERSION }}' -X 'main.gitcommit=${{ github.sha }}'" -trimpath -v -o dist/desqueeze ./
+
+    # see: https://github.com/Xeoncross/macappshell
+    - name: Build DMG
+      run: |
+        cd build
+        git clone https://github.com/Xeoncross/macappshell.git
+        cd macappshell
+        ./setup.sh desqueeze.app ../icon/icon.svg
+        mv ../../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
+        create-dmg desqueeze.app ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
+
+    - name: TMP - Upload DMG
+      uses: actions/upload-artifact@v2
+      with:
+        name: desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg
+        path: build/desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg
+        retention-days: 5
