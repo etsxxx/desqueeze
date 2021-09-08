@@ -18,3 +18,8 @@ bin/
 dist/
 debian/
 test/out
+
+# For building
+.node-version
+package-lock.json
+node_modules
