@@ -6,7 +6,7 @@ on:
       title:
         description: 'Release title'
         required: true
-        default: 'Mona the Octocat'
+        default: 'v0.0.0'
 
 jobs:
   build-macos-app:
@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [mac64, lin64, win64]
+        os: [mac64]
         include:
         - os: mac64
           goos: darwin
@@ -33,7 +33,6 @@ jobs:
       with:
         node-version: '16'
         cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
 
     - name: Install required packages
       run: |
