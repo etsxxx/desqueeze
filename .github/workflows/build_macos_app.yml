@@ -27,30 +27,12 @@ jobs:
       #run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       run: echo ::set-output name=VERSION::${{ github.event.inputs.title }}
 
-    - uses: actions/checkout@v1
-
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-        cache: 'npm'
-
-    - name: Install required packages
-      run: |
-        npm install --global create-dmg
-        brew install graphicsmagick imagemagick
+    - uses: actions/checkout@v3
 
     - name: Set up Go 1.17.0
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.17.0
-
-    - name: cache
-      uses: actions/cache@v1
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        go-version-file: go.mod
 
     - name: Get dependencies
       run: go get -v -t -d ./...
@@ -64,15 +46,28 @@ jobs:
         cp README.md LICENSE dist/
         GOOS=$goos GOARCH=$goarch go build -ldflags="-w -s -X 'main.version=${{ steps.get_version.outputs.VERSION }}' -X 'main.gitcommit=${{ github.sha }}'" -trimpath -v -o dist/desqueeze ./
 
+    - name: Checkout macappshell repo
+      uses: actions/checkout@v3
+      with:
+        repository: Xeoncross/macappshell
+        path: build/macappshell
+
+    - name: Checkout create-dmg repo
+      uses: actions/checkout@v3
+      with:
+        repository: create-dmg/create-dmg
+        path: build/create-dmg
+
     # see: https://github.com/Xeoncross/macappshell
     - name: Build DMG
       run: |
         cd build
-        git clone https://github.com/Xeoncross/macappshell.git
-        cd macappshell
-        ./setup.sh desqueeze.app ../icon/icon.svg
-        mv ../../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
-        create-dmg desqueeze.app ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
+        ./macappshell/setup.sh desqueeze.app icon/icon.svg
+        mv ../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
+        ./create-dmg/create-dmg \
+          --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
+          desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg \
+          desqueeze.app
 
     - name: TMP - Upload DMG
       uses: actions/upload-artifact@v2
