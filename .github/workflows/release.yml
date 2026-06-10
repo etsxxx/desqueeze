@@ -9,15 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.17.0
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
         go-version: 1.17.0
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
 
     - name: cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -52,7 +52,7 @@ jobs:
         echo $url > artifact/url.txt
 
     - name: Upload artifact to share url with other jobs
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: artifact
         path: artifact/url.txt
@@ -81,15 +81,15 @@ jobs:
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
     - name: Set up Go 1.17.0
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
         go-version: 1.17.0
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
 
     - name: cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -110,7 +110,7 @@ jobs:
         zip -j -r release dist
 
     - name: Download artifact to get url to upload to release
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: artifact
 
