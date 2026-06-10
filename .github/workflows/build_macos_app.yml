@@ -13,15 +13,13 @@ jobs:
     steps:
     - name: Get the version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
     - uses: actions/checkout@v4
 
     - uses: actions/setup-node@v4
       with:
-        node-version: '16'
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        node-version: '20'
 
     - name: Install required packages
       run: |

@@ -78,7 +78,7 @@ jobs:
     steps:
     - name: Get the version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
     - name: Set up Go 1.17.0
       uses: actions/setup-go@v5
@@ -118,7 +118,7 @@ jobs:
       id: get_url
       run: |
         url=$(cat artifact/url.txt)
-        echo "##[set-output name=upload_url;]$url"
+        echo "upload_url=$url" >> $GITHUB_OUTPUT
 
     - name: Upload release asset
       uses: actions/upload-release-asset@v1.0.2
