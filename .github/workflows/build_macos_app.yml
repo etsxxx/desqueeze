@@ -55,7 +55,7 @@ jobs:
         cd macappshell
         ./setup.sh desqueeze ../icon/icon.svg
         mv ../../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
-        create-dmg desqueeze.app ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
+        create-dmg ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg desqueeze.app --dmg-title="desqueeze-${{ steps.get_version.outputs.VERSION }}"
 
     - name: Upload DMG to Release
       uses: softprops/action-gh-release@v1
