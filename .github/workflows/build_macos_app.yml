@@ -1,31 +1,19 @@
 name: build desqueeze for MacOS
 
 on:
-  workflow_dispatch:
-    inputs:
-      title:
-        description: 'Release title'
-        required: true
-        default: 'Mona the Octocat'
+  push:
+    tags:
+      - v*
 
 jobs:
   build-macos-app:
     runs-on: macos-latest
     timeout-minutes: 10
 
-    strategy:
-      matrix:
-        os: [mac64, lin64, win64]
-        include:
-        - os: mac64
-          goos: darwin
-          arch: amd64
-
     steps:
     - name: Get the version
       id: get_version
-      #run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-      run: echo ::set-output name=VERSION::${{ github.event.inputs.title }}
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
     - uses: actions/checkout@v1
 
@@ -58,8 +46,8 @@ jobs:
 
     - name: Build go binary
       env:
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.arch }}
+        goos: darwin
+        goarch: amd64
       run: |
         mkdir dist
         cp README.md LICENSE dist/
@@ -75,9 +63,9 @@ jobs:
         mv ../../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
         create-dmg desqueeze.app ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
 
-    - name: TMP - Upload DMG
-      uses: actions/upload-artifact@v2
+    - name: Upload DMG to Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg
-        path: build/desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg
-        retention-days: 5
+        files: build/desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
