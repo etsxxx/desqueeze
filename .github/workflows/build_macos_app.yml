@@ -59,7 +59,7 @@ jobs:
         cd build
         git clone https://github.com/Xeoncross/macappshell.git
         cd macappshell
-        ./setup.sh desqueeze.app ../icon/icon.svg
+        ./setup.sh desqueeze ../icon/icon.svg
         mv ../../dist/desqueeze desqueeze.app/Contents/MacOS/desqueeze
         create-dmg desqueeze.app ../desqueeze-${{ steps.get_version.outputs.VERSION }}.dmg --dmg-title='desqueeze-${{ steps.get_version.outputs.VERSION }}'
 
